@@ -1,0 +1,38 @@
+### This is for re-using the existing Docker root.
+### Omit to create a local dir (defaults to ./root).
+root_dir: "/meerschaum"
+
+### All pipes are tagged with the project name
+### (defaults to directory name).
+project_name: "example-project"
+
+### 1. Module-level `fetch()` (plugin:example)
+### 2. Custom connector `fetch()` (example:secret)
+sync:
+  pipes:
+    - connector: "plugin:example"
+      metric: "foo"
+      location: "bar"
+      parameters:
+        datetime: "timestamp"
+        id: "id"
+
+    - connector: "example:secret"
+      metric: "foo"
+      location: "bar"
+      parameters:
+        datetime: "timestamp"
+        id: "id"
+
+### Define the MRSM_CONFIG for this isolated project.
+config:
+  meerschaum:
+    instance: "sql:main"
+    connectors:
+      sql:
+        main: MRSM{meerschaum:connectors:sql:main}
+      example:
+        secret: MRSM{meerschaum:connectors:example:secret}
+
+### Other environment variables to include (e.g. AWS creds).
+environment: {}
