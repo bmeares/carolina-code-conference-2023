@@ -1,38 +1,105 @@
-### This is for re-using the existing Docker root.
-### Omit to create a local dir (defaults to ./root).
+### Comment these out when running outside of Docker.
 root_dir: "/meerschaum"
+plugins_dir:
+  - "/meerschaum/plugins"
+  - "/app/plugins"
 
-### All pipes are tagged with the project name
-### (defaults to directory name).
-project_name: "example-project"
+project_name: "carolina-codes-2023"
 
-### 1. Module-level `fetch()` (plugin:example)
-### 2. Custom connector `fetch()` (example:secret)
 sync:
   pipes:
-    - connector: "plugin:example"
-      metric: "foo"
-      location: "bar"
-      parameters:
-        datetime: "timestamp"
-        id: "id"
 
-    - connector: "example:secret"
-      metric: "foo"
-      location: "bar"
+    - connector: "plugin:noaa"
+      metric: "weather"
+      location: "sc"
       parameters:
-        datetime: "timestamp"
-        id: "id"
+        noaa:
+          stations:
+            - "KGMU"
+            - "KCEU"
+            - "KJZI"
 
-### Define the MRSM_CONFIG for this isolated project.
+    - connector: "plugin:noaa"
+      metric: "weather"
+      location: "nc"
+      instance: "mongodb:local"
+      parameters:
+        noaa:
+          stations:
+            - "KCLT"
+            - "KCEU"
+            - "KJZI"
+
+    - connector: "plugin:clone"
+      metric: "weather"
+      target: "weather_combined"
+      parameters:
+        sources:
+          - pipe:
+              connector: "plugin:noaa"
+              metric: "weather"
+              location: "sc"
+          - pipe:
+              connector: "plugin:noaa"
+              metric: "weather"
+              location: "nc"
+
+    - connector: "sql:etl"
+      metric: "weather"
+      location: "fahrenheit"
+      target: "weather_fahrenheit"
+      columns:
+        datetime: "timestamp"
+        station: "station"
+      parameters:
+        fetch:
+          backtrack_minutes: 1440
+        query: |-
+          SELECT
+            "timestamp",
+            "station",
+            "location",
+            (("temperature (wmoUnit:degC)" * 1.8) + 32) AS "fahrenheit"
+          FROM "weather_combined"
+
+    - connector: "sql:etl"
+      metric: "weather"
+      location: "avg"
+      columns:
+        datetime: "day"
+        station: "station"
+      parameters:
+        fetch:
+          backtrack_minutes: 1440
+        query: |-
+          SELECT
+            time_bucket('1 day', "timestamp") AS "day",
+            "station",
+            "location",
+            ROUND("fahrenheit"::NUMERIC, 2) AS "avg_temp"
+          FROM "weather_fahrenheit"
+      
+    - connector: "plugin:fake"
+      metric: "reviews"
+      instance: "mongodb:local"
+      columns:
+        datetime: "timestamp"
+        username: "username"
+
+plugins:
+  - "noaa"
+  - "mongodb-connector"
+  - "clone"
+
 config:
   meerschaum:
-    instance: "sql:main"
+    instance: "sql:etl"
     connectors:
       sql:
-        main: MRSM{meerschaum:connectors:sql:main}
-      example:
-        secret: MRSM{meerschaum:connectors:example:secret}
+        etl: MRSM{meerschaum:connectors:sql:etl}
+      mongodb:
+        local: MRSM{meerschaum:connectors:mongodb:local}
+        
 
 ### Other environment variables to include (e.g. AWS creds).
 environment: {}
