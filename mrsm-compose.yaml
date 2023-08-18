@@ -4,9 +4,10 @@ plugins_dir:
   - "/meerschaum/plugins"
   - "/app/plugins"
 
-project_name: "carolina-codes-2023"
+project_name: "carolina-codes-weather"
 
 sync:
+  min_seconds: 30
   pipes:
 
     - connector: "plugin:noaa"
@@ -79,13 +80,6 @@ sync:
             ROUND("fahrenheit"::NUMERIC, 2) AS "avg_temp"
           FROM "weather_fahrenheit"
       
-    - connector: "plugin:fake"
-      metric: "reviews"
-      instance: "mongodb:local"
-      columns:
-        datetime: "timestamp"
-        username: "username"
-
 plugins:
   - "noaa"
   - "mongodb-connector"

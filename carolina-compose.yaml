@@ -1,0 +1,24 @@
+root_dir: "/meerschaum"
+plugins_dir:
+  - "/meerschaum/plugins"
+  - "/app/plugins"
+
+project_name: "carolina-codes-reviews"
+
+sync:
+  schedule: "every 30 seconds"
+  pipes:
+
+    - connector: "plugin:fake"
+      metric: "reviews"
+      instance: "mongodb:local"
+      columns:
+        datetime: "timestamp"
+        username: "username"
+
+config:
+  meerschaum:
+    instance: "sql:etl"
+    connectors:
+      sql:
+        etl: MRSM{meerschaum:connectors:sql:etl}
