@@ -28,8 +28,7 @@ sync:
         noaa:
           stations:
             - "KCLT"
-            - "KCEU"
-            - "KJZI"
+            - "KRDU"
 
     - connector: "plugin:clone"
       metric: "weather"
