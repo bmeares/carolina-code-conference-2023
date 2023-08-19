@@ -31,7 +31,9 @@ def fetch(
 
     fake = build_faker()
 
-    for chunk_begin, chunk_end in iterate_chunks(days, 2, days[-1]):
+    for chunk_begin, chunk_end in iterate_chunks(days, 2, None):
+        if chunk_end is None:
+            break
         fake.seed_instance(int(chunk_begin.timestamp()))
         hours = rrule(HOURLY, dtstart=chunk_begin, until=chunk_end)
         
