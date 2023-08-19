@@ -43,6 +43,7 @@ sync:
               connector: "plugin:noaa"
               metric: "weather"
               location: "nc"
+              instance: "mongodb:local"
 
     - connector: "sql:etl"
       metric: "weather"
