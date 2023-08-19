@@ -11,7 +11,6 @@ sync:
 
     - connector: "plugin:fake"
       metric: "reviews"
-      instance: "mongodb:local"
       columns:
         datetime: "timestamp"
         username: "username"

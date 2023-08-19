@@ -66,6 +66,7 @@ sync:
     - connector: "sql:etl"
       metric: "weather"
       location: "avg"
+      target: "weather_avg"
       columns:
         datetime: "day"
         station: "station"
@@ -77,8 +78,9 @@ sync:
             time_bucket('1 day', "timestamp") AS "day",
             "station",
             "location",
-            ROUND("fahrenheit"::NUMERIC, 2) AS "avg_temp"
+            ROUND(AVG("fahrenheit"::NUMERIC), 2) AS "avg_temp"
           FROM "weather_fahrenheit"
+          GROUP BY "day", "station", "location"
       
 plugins:
   - "noaa"
